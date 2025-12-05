@@ -1,57 +1,68 @@
 const fs = require('fs');
 const https = require('https');
 
-// Configuration
 const WEATHER_API_URL = `https://api.pirateweather.net/forecast/${process.env.PIRATE_WEATHER_API_KEY}/17.3760,78.4928?units=si&lang=en`;
 const TIME_API_URL = 'https://worldtimeapi.org/api/timezone/Asia/Kolkata';
 const TEMPLATE_PATH = './template.svg';
 const OUTPUT_PATH = './chat.svg';
 
-// Weather icon mapping
 const WEATHER_ICONS = {
-  'clear-day': '☀️',
-  'clear-night': '🌙',
-  'rain': '🌧️',
-  'snow': '❄️',
-  'sleet': '🌨️',
-  'wind': '💨',
-  'fog': '🌫️',
-  'cloudy': '☁️',
-  'partly-cloudy-day': '⛅',
-  'partly-cloudy-night': '☁️'
+  'clear-day': '☀️', 'clear-night': '🌙', 'rain': '🌧️', 'snow': '❄️',
+  'sleet': '🌨️', 'wind': '💨', 'fog': '🌫️', 'cloudy': '☁️',
+  'partly-cloudy-day': '⛅', 'partly-cloudy-night': '☁️'
 };
 
-// Day names
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 /**
- * Fetch data from API with retry logic
+ * Fetch with exponential backoff - works around GitHub Actions network issues
  */
-function fetchJSON(url, retries = 3) {
+function fetchJSON(url, maxRetries = 5) {
   return new Promise((resolve, reject) => {
-    const attemptFetch = (attemptsLeft) => {
-      console.log(`Attempting to fetch: ${url.replace(/\/forecast\/[^/]+\//, '/forecast/***/')}`);
-      console.log(`Attempts remaining: ${attemptsLeft}`);
+    let attempt = 0;
+
+    const tryFetch = () => {
+      attempt++;
+      const backoffDelay = Math.min(1000 * Math.pow(2, attempt - 1), 10000); // Max 10s
       
-      const request = https.get(url, { timeout: 10000 }, (res) => {
+      console.log(`Attempt ${attempt}/${maxRetries}: ${url.includes('pirateweather') ? 'Weather API' : 'Time API'}`);
+      
+      const options = {
+        timeout: 30000, // 30 second timeout
+        headers: {
+          'User-Agent': 'GitHub-Profile-Bot/1.0'
+        }
+      };
+
+      const request = https.get(url, options, (res) => {
         let data = '';
         
-        res.on('data', (chunk) => data += chunk);
+        res.on('data', (chunk) => {
+          data += chunk;
+        });
         
         res.on('end', () => {
           if (res.statusCode === 200) {
             try {
-              resolve(JSON.parse(data));
+              const parsed = JSON.parse(data);
+              console.log(`✅ Success on attempt ${attempt}`);
+              resolve(parsed);
             } catch (err) {
-              reject(new Error(`Failed to parse JSON: ${err.message}`));
+              console.error(`❌ Parse error: ${err.message}`);
+              if (attempt < maxRetries) {
+                console.log(`⏳ Retrying in ${backoffDelay}ms...`);
+                setTimeout(tryFetch, backoffDelay);
+              } else {
+                reject(new Error(`Failed to parse JSON after ${maxRetries} attempts`));
+              }
             }
           } else {
-            const error = new Error(`HTTP ${res.statusCode}: ${data}`);
-            if (attemptsLeft > 0) {
-              console.log(`Request failed, retrying... (${attemptsLeft} attempts left)`);
-              setTimeout(() => attemptFetch(attemptsLeft - 1), 2000);
+            console.error(`❌ HTTP ${res.statusCode}`);
+            if (attempt < maxRetries) {
+              console.log(`⏳ Retrying in ${backoffDelay}ms...`);
+              setTimeout(tryFetch, backoffDelay);
             } else {
-              reject(error);
+              reject(new Error(`HTTP ${res.statusCode} after ${maxRetries} attempts`));
             }
           }
         });
@@ -59,55 +70,49 @@ function fetchJSON(url, retries = 3) {
 
       request.on('timeout', () => {
         request.destroy();
-        const error = new Error('Request timeout');
-        if (attemptsLeft > 0) {
-          console.log(`Timeout, retrying... (${attemptsLeft} attempts left)`);
-          setTimeout(() => attemptFetch(attemptsLeft - 1), 2000);
+        console.error(`❌ Timeout on attempt ${attempt}`);
+        if (attempt < maxRetries) {
+          console.log(`⏳ Retrying in ${backoffDelay}ms...`);
+          setTimeout(tryFetch, backoffDelay);
         } else {
-          reject(error);
+          reject(new Error(`Timeout after ${maxRetries} attempts`));
         }
       });
 
       request.on('error', (err) => {
-        if (attemptsLeft > 0) {
-          console.log(`Error: ${err.message}, retrying... (${attemptsLeft} attempts left)`);
-          setTimeout(() => attemptFetch(attemptsLeft - 1), 2000);
+        console.error(`❌ Network error: ${err.message}`);
+        if (attempt < maxRetries) {
+          console.log(`⏳ Retrying in ${backoffDelay}ms...`);
+          setTimeout(tryFetch, backoffDelay);
         } else {
-          reject(err);
+          reject(new Error(`${err.message} after ${maxRetries} attempts`));
         }
       });
     };
 
-    attemptFetch(retries);
+    tryFetch();
   });
 }
 
-/**
- * Main build function
- */
 async function buildSVG() {
   try {
-    // Check if API key is set
     if (!process.env.PIRATE_WEATHER_API_KEY) {
-      console.error('❌ ERROR: PIRATE_WEATHER_API_KEY environment variable is not set!');
-      console.error('Please add it to GitHub Secrets: Settings → Secrets → Actions → New secret');
-      process.exit(1);
+      throw new Error('PIRATE_WEATHER_API_KEY not set');
     }
 
-    console.log('✅ API key found');
     console.log('🌍 Fetching weather data...');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     const weatherData = await fetchJSON(WEATHER_API_URL);
-    console.log('✅ Weather data received');
     
+    console.log('');
     console.log('🕐 Fetching time data...');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     const timeData = await fetchJSON(TIME_API_URL);
-    console.log('✅ Time data received');
     
+    console.log('');
     console.log('📄 Reading template...');
     const template = fs.readFileSync(TEMPLATE_PATH, 'utf8');
-    console.log('✅ Template loaded');
     
-    // Extract data
     const temperature = Math.round(weatherData.currently.temperature);
     const weatherSummary = weatherData.currently.summary;
     const weatherIcon = WEATHER_ICONS[weatherData.currently.icon] || '🌤️';
@@ -133,7 +138,8 @@ async function buildSVG() {
     fs.writeFileSync(OUTPUT_PATH, svg);
     
     console.log('');
-    console.log('✅ SVG generated successfully!');
+    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('✅ SVG GENERATED SUCCESSFULLY!');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log(`📍 Location: Secunderabad, Telangana`);
     console.log(`🌡️  Temperature: ${temperature}°C`);
@@ -144,22 +150,18 @@ async function buildSVG() {
     
   } catch (error) {
     console.error('');
-    console.error('❌ ERROR building SVG:');
     console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.error(`Message: ${error.message}`);
-    console.error(`Stack: ${error.stack}`);
+    console.error('❌ FAILED TO BUILD SVG');
     console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.error(`Error: ${error.message}`);
     console.error('');
-    console.error('Troubleshooting:');
-    console.error('1. Check if PIRATE_WEATHER_API_KEY is set in GitHub Secrets');
-    console.error('2. Verify your API key is valid at https://pirate-weather.apiable.io/');
-    console.error('3. Check API status at https://pirate-weather.apiable.io/products/weather-data/');
-    console.error('');
+    console.error('This is likely a network connectivity issue between');
+    console.error('GitHub Actions and the weather API.');
+    console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     process.exit(1);
   }
 }
 
-// Run if called directly
 if (require.main === module) {
   buildSVG();
 }
