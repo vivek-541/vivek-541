@@ -1,0 +1,60 @@
+{
+  "name": "Dependency Bot",
+  "version": "1.0.0",
+  "schedule": {
+    "frequency": "weekly",
+    "day": "monday",
+    "time": "09:00"
+  },
+  "strategy": {
+    "default": "minor",
+    "security": "immediate",
+    "major": "manual-review"
+  },
+  "ignore": {
+    "packages": [],
+    "updateTypes": []
+  },
+  "autoMerge": {
+    "enabled": false,
+    "requirements": {
+      "minorUpdates": true,
+      "securityFixes": true,
+      "testsPass": true,
+      "reviewRequired": false
+    }
+  },
+  "notifications": {
+    "slack": {
+      "enabled": false,
+      "webhookUrl": ""
+    },
+    "email": {
+      "enabled": false,
+      "recipients": []
+    },
+    "github": {
+      "enabled": true,
+      "createIssue": false,
+      "assignees": [],
+      "reviewers": []
+    }
+  },
+  "prSettings": {
+    "prefix": "[Dependency Bot]",
+    "labels": ["dependencies", "automated"],
+    "assignReviewer": true,
+    "branchPrefix": "bot/deps-",
+    "commitFormat": "chore(deps): {{message}}"
+  },
+  "security": {
+    "prioritize": true,
+    "createSeparatePR": true,
+    "labels": ["security", "critical"]
+  },
+  "reporting": {
+    "includeChangelog": true,
+    "includeVulnerabilities": true,
+    "format": "markdown"
+  }
+}

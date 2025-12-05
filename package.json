@@ -1,0 +1,13 @@
+{
+  "name": "vivek-541",
+  "version": "1.0.0",
+  "description": "Repository with automated dependency bot",
+  "main": "index.js",
+  "scripts": {
+    "bot": "node scripts/dependency-bot.js",
+    "test": "echo \"No tests yet\" && exit 0"
+  },
+  "keywords": ["bot", "automation", "dependencies"],
+  "author": "vivek-541",
+  "license": "MIT"
+}

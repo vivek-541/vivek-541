@@ -1,0 +1,95 @@
+# .github/workflows/dependency-update-bot.yml
+name: Dependency Update Bot
+
+on:
+  schedule:
+    # Runs every Monday at 9 AM UTC
+    - cron: '0 9 * * 1'
+  workflow_dispatch: # Allow manual trigger
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  update-dependencies:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+      
+      - name: Cache dependencies
+        uses: actions/cache@v3
+        with:
+          path: ~/.npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Check for outdated packages
+        id: check-updates
+        run: |
+          # Get outdated packages
+          npm outdated --json > outdated.json || true
+          
+          # Check if there are updates
+          if [ -s outdated.json ]; then
+            echo "has_updates=true" >> $GITHUB_OUTPUT
+          else
+            echo "has_updates=false" >> $GITHUB_OUTPUT
+          fi
+      
+      - name: Update dependencies
+        if: steps.check-updates.outputs.has_updates == 'true'
+        run: |
+          # Update all dependencies to latest
+          npm update --save
+          
+          # Generate update summary
+          echo "## 📦 Dependency Updates" > update-summary.md
+          echo "" >> update-summary.md
+          echo "The following dependencies have been updated:" >> update-summary.md
+          echo "" >> update-summary.md
+          
+          # Parse outdated.json and create summary
+          node << 'EOF'
+          const fs = require('fs');
+          const outdated = JSON.parse(fs.readFileSync('outdated.json', 'utf8'));
+          
+          let summary = '';
+          for (const [pkg, info] of Object.entries(outdated)) {
+            summary += `- **${pkg}**: ${info.current} → ${info.latest}\n`;
+          }
+          
+          fs.appendFileSync('update-summary.md', summary);
+          EOF
+      
+      - name: Create Pull Request
+        if: steps.check-updates.outputs.has_updates == 'true'
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update dependencies'
+          branch: bot/dependency-updates
+          delete-branch: true
+          title: '🤖 [Bot] Update Dependencies'
+          body-path: update-summary.md
+          labels: |
+            dependencies
+            automated
+          assignees: ${{ github.repository_owner }}
+          reviewers: ${{ github.repository_owner }}
+      
+      - name: Notify on completion
+        if: steps.check-updates.outputs.has_updates == 'true'
+        run: |
+          echo "✅ Dependency update PR created successfully!"
