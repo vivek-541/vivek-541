@@ -34,8 +34,8 @@
   <!-- Message 2: Location & Weather -->
   <g transform="translate(10, 48)">
     <rect width="520" height="66" rx="18"/>
-    <text x="15" y="27">I'm in Secunderabad, Telangana where it's 19°C</text>
-    <text x="15" y="50">and 🌙 Mostly Clear today.</text>
+    <text x="15" y="27">I'm in Secunderabad, Telangana where it's {{TEMPERATURE}}°C</text>
+    <text x="15" y="50">and {{WEATHER_ICON}} {{WEATHER_SUMMARY}} today.</text>
   </g>
 
   <!-- Message 3: What I do -->
@@ -61,11 +61,11 @@
   <!-- Message 6: Closing -->
   <g transform="translate(10, 312)">
     <rect width="280" height="42" rx="18"/>
-    <text x="15" y="27">Have a great Saturday! 🚀</text>
+    <text x="15" y="27">Have a great {{DAY_NAME}}! 🚀</text>
   </g>
 
   <!-- Timestamp footer -->
   <g transform="translate(10, 370)">
-    <text x="0" y="0" style="font-size: 12px; fill: #999999;">Last updated: 6 Dec 2025, 01:22 am</text>
+    <text x="0" y="0" style="font-size: 12px; fill: #999999;">Last updated: {{UPDATE_TIME}}</text>
   </g>
 </svg>

@@ -1,13 +1,22 @@
 {
   "name": "vivek-541",
   "version": "1.0.0",
-  "description": "Repository with automated dependency bot",
-  "main": "index.js",
+  "description": "Dynamic GitHub profile with automated updates",
+  "main": "build-svg.js",
   "scripts": {
-    "bot": "node scripts/dependency-bot.js",
-    "test": "echo \"No tests yet\" && exit 0"
+    "build": "node build-svg.js",
+    "test": "node build-svg.js"
   },
-  "keywords": ["bot", "automation", "dependencies"],
-  "author": "vivek-541",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/vivek-541/vivek-541.git"
+  },
+  "keywords": [
+    "github-profile",
+    "automation",
+    "svg",
+    "dynamic"
+  ],
+  "author": "Vivek",
   "license": "MIT"
 }
