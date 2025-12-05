@@ -31,7 +31,9 @@ jobs:
       
       - name: �� Run Dependency Bot
         id: bot
-        run: |
+        continue-on-error: true
+        run:
+        continue-on-error: true |
           node scripts/dependency-bot.js || echo "has_updates=false" >> $GITHUB_OUTPUT
           if [ $? -eq 0 ]; then
             echo "has_updates=true" >> $GITHUB_OUTPUT

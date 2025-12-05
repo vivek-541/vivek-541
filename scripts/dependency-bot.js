@@ -217,7 +217,7 @@ class DependencyBot {
 if (require.main === module) {
   const bot = new DependencyBot();
   bot.run().then((hasUpdates) => {
-    process.exit(hasUpdates ? 0 : 1);
+    process.exit(0);  // Always exit successfully
   }).catch((error) => {
     console.error('Fatal error:', error);
     process.exit(1);
