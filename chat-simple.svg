@@ -1,0 +1,45 @@
+<svg width="800" height="400" xmlns="http://www.w3.org/2000/svg">
+  <style>
+    .message {
+      font-family: -apple-system, sans-serif;
+      font-size: 18px;
+      fill: #dcdcdc;
+    }
+    .bubble {
+      fill: #3b3b3d;
+    }
+    /* Simple fade-in animation that GitHub allows */
+    .msg1 { animation: fadeIn 1s ease-in; }
+    .msg2 { animation: fadeIn 1s ease-in 0.5s both; }
+    .msg3 { animation: fadeIn 1s ease-in 1s both; }
+    
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    
+    @media (prefers-color-scheme: light) {
+      .bubble { fill: #e9e9eb; }
+      .message { fill: #242424; }
+    }
+  </style>
+  
+  <!-- Message 1 -->
+  <g class="msg1">
+    <rect class="bubble" x="10" y="10" width="250" height="50" rx="20"/>
+    <text class="message" x="25" y="42">Hi, I'm an AI Engineer 👋</text>
+  </g>
+  
+  <!-- Message 2 -->
+  <g class="msg2">
+    <rect class="bubble" x="10" y="70" width="500" height="80" rx="20"/>
+    <text class="message" x="25" y="102">I live in Secunderabad, Telangana</text>
+    <text class="message" x="25" y="130">Building production AI systems</text>
+  </g>
+  
+  <!-- Message 3 -->
+  <g class="msg3">
+    <rect class="bubble" x="10" y="160" width="450" height="50" rx="20"/>
+    <text class="message" x="25" y="192">Specialized in LLM and ML pipelines</text>
+  </g>
+</svg>
