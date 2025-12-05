@@ -1,21 +1,9 @@
-# .github/workflows/dependency-bot.yml
 name: Advanced Dependency Bot
 
 on:
   schedule:
-    # Run every Monday and Thursday at 9 AM UTC
     - cron: '0 9 * * 1,4'
   workflow_dispatch:
-    inputs:
-      strategy:
-        description: 'Update strategy'
-        required: true
-        default: 'minor'
-        type: choice
-        options:
-          - minor
-          - security
-          - all
 
 permissions:
   contents: write
@@ -41,20 +29,24 @@ jobs:
       - name: 📦 Install dependencies
         run: npm ci
       
-      - name: 🤖 Run Dependency Bot
+      - name: �� Run Dependency Bot
         id: bot
         run: |
-          node scripts/dependency-bot.js
-          echo "has_updates=$?" >> $GITHUB_OUTPUT
+          node scripts/dependency-bot.js || echo "has_updates=false" >> $GITHUB_OUTPUT
+          if [ $? -eq 0 ]; then
+            echo "has_updates=true" >> $GITHUB_OUTPUT
+          fi
+        continue-on-error: true
       
       - name: 📊 Upload report as artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: dependency-report
           path: update-report.md
       
       - name: 🔀 Create Pull Request
-        if: steps.bot.outputs.has_updates == '0'
+        if: steps.bot.outputs.has_updates == 'true'
         id: create-pr
         uses: peter-evans/create-pull-request@v5
         with:
@@ -81,9 +73,8 @@ jobs:
         if: steps.create-pr.outputs.pull-request-number
         run: |
           echo "✅ PR created: ${{ steps.create-pr.outputs.pull-request-url }}"
-          echo "📊 Review the dependency report in the PR description"
       
       - name: 🎉 No updates needed
-        if: steps.bot.outputs.has_updates != '0'
+        if: steps.bot.outputs.has_updates != 'true'
         run: |
           echo "✨ All dependencies are up to date!"
