@@ -19,7 +19,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: 📥 Checkout repository
+      - name: �� Checkout repository
         uses: actions/checkout@v4
       
       - name: 🟢 Setup Node.js
@@ -32,7 +32,7 @@ jobs:
           OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
         run: node build-svg.js
       
-      - name: 📊 Check for changes
+      - name: �� Check for changes
         id: git-check
         run: |
           git diff --exit-code chat.svg || echo "changed=true" >> $GITHUB_OUTPUT
