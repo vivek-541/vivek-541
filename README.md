@@ -69,4 +69,4 @@ Real-time GitHub profile with:
     🤖 This profile is automatically updated daily with live data<br>
     ⚙️ Powered by custom automation & GitHub Actions
   </sub>
-</div>
+</div># Trigger workflow
