@@ -1,9 +1,6 @@
 # Hi there! 👋
 
-<div align="center">
-  <img src="./chat.svg" width="550" alt="Animated Profile">
-</div>
-
+<img src="./chat.svg" width="550" alt="Animated Profile">
 ---
 
 ## 🤖 About Me
