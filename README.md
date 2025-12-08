@@ -7,7 +7,7 @@
 
 **AI Engineer** building production-grade ML systems and intelligent infrastructure.
 
-**Location:** 📍 Secunderabad, Telangana, India  
+**Location:** 📍 Hderabad, Telangana, India  
 **Focus:** LLMs, RAG Systems, ML Pipelines, AI Automation
 
 ---
@@ -36,7 +36,7 @@ Automated dependency management system that:
 
 ### Dynamic Profile (This!)
 Real-time GitHub profile with:
-- 🌤️ Live weather updates (Secunderabad)
+- 🌤️ Live weather updates (Hyderabad)
 - 🕐 Current day/time information
 - 🔄 Automated daily regeneration
 - 🎨 SVG-based chat interface
@@ -57,7 +57,7 @@ Real-time GitHub profile with:
 
 **GitHub:** [@vivek-541](https://github.com/vivek-541)  
 **Email:** nanichary541@gmail.com  
-**Location:** Secunderabad, Telangana, India
+**Location:** Hyderabad, Telangana, India
 
 ---
 

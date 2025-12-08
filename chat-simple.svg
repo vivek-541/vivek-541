@@ -33,7 +33,7 @@
   <!-- Message 2 -->
   <g class="msg2">
     <rect class="bubble" x="10" y="70" width="500" height="80" rx="20"/>
-    <text class="message" x="25" y="102">I live in Secunderabad, Telangana</text>
+    <text class="message" x="25" y="102">I live in Hyderabad, Telangana</text>
     <text class="message" x="25" y="130">Building production AI systems</text>
   </g>
   
