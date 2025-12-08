@@ -1,123 +1,81 @@
 const fs = require('fs');
 const https = require('https');
 
-const WEATHER_API_URL = `https://api.pirateweather.net/forecast/${process.env.PIRATE_WEATHER_API_KEY}/17.3760,78.4928?units=si&lang=en`;
-const TIME_API_URL = 'https://worldtimeapi.org/api/timezone/Asia/Kolkata';
+const WEATHER_API_URL = `https://api.openweathermap.org/data/2.5/weather?lat=17.3760&lon=78.4928&appid=${process.env.OPENWEATHER_API_KEY}&units=metric`;
 const TEMPLATE_PATH = './template.svg';
 const OUTPUT_PATH = './chat.svg';
 
 const WEATHER_ICONS = {
-  'clear-day': '☀️', 'clear-night': '🌙', 'rain': '🌧️', 'snow': '❄️',
-  'sleet': '🌨️', 'wind': '💨', 'fog': '🌫️', 'cloudy': '☁️',
-  'partly-cloudy-day': '⛅', 'partly-cloudy-night': '☁️'
+  '01d': '☀️', '01n': '🌙', '02d': '⛅', '02n': '☁️',
+  '03d': '☁️', '03n': '☁️', '04d': '☁️', '04n': '☁️',
+  '09d': '🌧️', '09n': '🌧️', '10d': '🌦️', '10n': '🌧️',
+  '11d': '⛈️', '11n': '⛈️', '13d': '❄️', '13n': '❄️',
+  '50d': '🌫️', '50n': '🌫️'
 };
 
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-/**
- * Fetch with exponential backoff - works around GitHub Actions network issues
- */
-function fetchJSON(url, maxRetries = 5) {
+function fetchJSON(url) {
   return new Promise((resolve, reject) => {
-    let attempt = 0;
-
-    const tryFetch = () => {
-      attempt++;
-      const backoffDelay = Math.min(1000 * Math.pow(2, attempt - 1), 10000); // Max 10s
-      
-      console.log(`Attempt ${attempt}/${maxRetries}: ${url.includes('pirateweather') ? 'Weather API' : 'Time API'}`);
-      
-      const options = {
-        timeout: 30000, // 30 second timeout
-        headers: {
-          'User-Agent': 'GitHub-Profile-Bot/1.0'
-        }
-      };
-
-      const request = https.get(url, options, (res) => {
-        let data = '';
-        
-        res.on('data', (chunk) => {
-          data += chunk;
-        });
-        
-        res.on('end', () => {
-          if (res.statusCode === 200) {
-            try {
-              const parsed = JSON.parse(data);
-              console.log(`✅ Success on attempt ${attempt}`);
-              resolve(parsed);
-            } catch (err) {
-              console.error(`❌ Parse error: ${err.message}`);
-              if (attempt < maxRetries) {
-                console.log(`⏳ Retrying in ${backoffDelay}ms...`);
-                setTimeout(tryFetch, backoffDelay);
-              } else {
-                reject(new Error(`Failed to parse JSON after ${maxRetries} attempts`));
-              }
-            }
-          } else {
-            console.error(`❌ HTTP ${res.statusCode}`);
-            if (attempt < maxRetries) {
-              console.log(`⏳ Retrying in ${backoffDelay}ms...`);
-              setTimeout(tryFetch, backoffDelay);
-            } else {
-              reject(new Error(`HTTP ${res.statusCode} after ${maxRetries} attempts`));
-            }
+    console.log('Fetching Weather API...');
+    
+    const request = https.get(url, { timeout: 10000 }, (res) => {
+      let data = '';
+      res.on('data', (chunk) => { data += chunk; });
+      res.on('end', () => {
+        if (res.statusCode === 200) {
+          try {
+            resolve(JSON.parse(data));
+          } catch (err) {
+            reject(new Error(`Parse error: ${err.message}`));
           }
-        });
-      });
-
-      request.on('timeout', () => {
-        request.destroy();
-        console.error(`❌ Timeout on attempt ${attempt}`);
-        if (attempt < maxRetries) {
-          console.log(`⏳ Retrying in ${backoffDelay}ms...`);
-          setTimeout(tryFetch, backoffDelay);
         } else {
-          reject(new Error(`Timeout after ${maxRetries} attempts`));
+          reject(new Error(`HTTP ${res.statusCode}: ${data}`));
         }
       });
+    });
 
-      request.on('error', (err) => {
-        console.error(`❌ Network error: ${err.message}`);
-        if (attempt < maxRetries) {
-          console.log(`⏳ Retrying in ${backoffDelay}ms...`);
-          setTimeout(tryFetch, backoffDelay);
-        } else {
-          reject(new Error(`${err.message} after ${maxRetries} attempts`));
-        }
-      });
-    };
+    request.on('timeout', () => {
+      request.destroy();
+      reject(new Error('Request timeout'));
+    });
 
-    tryFetch();
+    request.on('error', (err) => {
+      reject(err);
+    });
   });
 }
 
 async function buildSVG() {
   try {
-    if (!process.env.PIRATE_WEATHER_API_KEY) {
-      throw new Error('PIRATE_WEATHER_API_KEY not set');
+    if (!process.env.OPENWEATHER_API_KEY) {
+      throw new Error('OPENWEATHER_API_KEY environment variable not set');
     }
 
-    console.log('🌍 Fetching weather data...');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
+    console.log('🌍 Fetching weather data from OpenWeatherMap...');
     const weatherData = await fetchJSON(WEATHER_API_URL);
+    console.log('✅ Weather data received');
     
-    console.log('');
-    console.log('🕐 Fetching time data...');
-    console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    const timeData = await fetchJSON(TIME_API_URL);
-    
-    console.log('');
     console.log('📄 Reading template...');
     const template = fs.readFileSync(TEMPLATE_PATH, 'utf8');
     
-    const temperature = Math.round(weatherData.currently.temperature);
-    const weatherSummary = weatherData.currently.summary;
-    const weatherIcon = WEATHER_ICONS[weatherData.currently.icon] || '🌤️';
-    const dayName = DAY_NAMES[timeData.day_of_week];
-    const updateTime = new Date(timeData.datetime).toLocaleString('en-IN', {
+    // Extract weather data
+    const temperature = Math.round(weatherData.main.temp);
+    const weatherSummary = weatherData.weather[0].description
+      .split(' ')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+    const weatherIcon = WEATHER_ICONS[weatherData.weather[0].icon] || '🌤️';
+    
+    // Get time from OpenWeatherMap data (no separate API needed!)
+    const currentTime = new Date(weatherData.dt * 1000); // Unix timestamp to milliseconds
+    const timezoneOffset = weatherData.timezone / 60; // Convert seconds to minutes
+    
+    // Apply timezone offset to get local time
+    const localTime = new Date(currentTime.getTime() + (timezoneOffset - currentTime.getTimezoneOffset()) * 60000);
+    
+    const dayName = DAY_NAMES[localTime.getDay()];
+    const updateTime = localTime.toLocaleString('en-IN', {
       timeZone: 'Asia/Kolkata',
       year: 'numeric',
       month: 'short',
@@ -141,7 +99,7 @@ async function buildSVG() {
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.log('✅ SVG GENERATED SUCCESSFULLY!');
     console.log('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
-    console.log(`📍 Location: Secunderabad, Telangana`);
+    console.log(`📍 Location: ${weatherData.name}, ${weatherData.sys.country}`);
     console.log(`🌡️  Temperature: ${temperature}°C`);
     console.log(`${weatherIcon}  Weather: ${weatherSummary}`);
     console.log(`📅 Day: ${dayName}`);
@@ -154,9 +112,6 @@ async function buildSVG() {
     console.error('❌ FAILED TO BUILD SVG');
     console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     console.error(`Error: ${error.message}`);
-    console.error('');
-    console.error('This is likely a network connectivity issue between');
-    console.error('GitHub Actions and the weather API.');
     console.error('━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━');
     process.exit(1);
   }
