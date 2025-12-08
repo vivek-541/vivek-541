@@ -56,7 +56,7 @@ Real-time GitHub profile with:
 ## 📫 Connect With Me
 
 **GitHub:** [@vivek-541](https://github.com/vivek-541)  
-**Email:** nanichary541@gmail.com  
+**Email:** vivekchary541@gmail.com  
 **Location:** Hyderabad, Telangana, India
 
 ---
