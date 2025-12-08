@@ -7,7 +7,7 @@
 
 **AI Engineer** building production-grade ML systems and intelligent infrastructure.
 
-**Location:** 📍 Hderabad, Telangana, India  
+**Location:** 📍 Hyderabad, Telangana, India  
 **Focus:** LLMs, RAG Systems, ML Pipelines, AI Automation
 
 ---
