@@ -34,7 +34,7 @@ jobs:
       
       - name: 🎨 Generate updated SVG
         env:
-          PIRATE_WEATHER_API_KEY: ${{ secrets.PIRATE_WEATHER_API_KEY }}
+          OPENWEATHER_API_KEY: ${{ secrets.OPENWEATHER_API_KEY }}
         run: node build-svg.js
       
       - name: 📊 Check for changes
