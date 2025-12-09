@@ -4,6 +4,7 @@ on:
   # Run daily at 12:00 AM IST (6:30 PM UTC previous day)
   schedule:
     - cron: '30 18 * * *'
+    - cron: '30 6 * * *'
   
   # Allow manual trigger
   workflow_dispatch:
