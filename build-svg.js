@@ -1,7 +1,7 @@
 const fs = require('fs');
 const https = require('https');
 
-const WEATHER_API_URL = `https://api.openweathermap.org/data/2.5/weather?lat=17.3760&lon=78.4928&appid=${process.env.OPENWEATHER_API_KEY}&units=metric`;
+const WEATHER_API_URL = `https://api.openweathermap.org/data/2.5/weather?lat=17.93&lon=82.38&appid=${process.env.OPENWEATHER_API_KEY}&units=metric`;
 const TEMPLATE_PATH = './template.svg';
 const OUTPUT_PATH = './chat.svg';
 
