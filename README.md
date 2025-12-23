@@ -57,6 +57,7 @@ Real-time GitHub profile with:
 
 **GitHub:** [@vivek-541](https://github.com/vivek-541)  
 **Email:** vivekchary541@gmail.com  
+**Twitter:** [@VivekCharyA](https://twitter.com/VivekCharyA)
 **Location:** Hyderabad, Telangana, India
 
 ---
