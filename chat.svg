@@ -265,9 +265,9 @@
   <g transform="translate(10, 48)" class="msg-2">
     <rect width="520" height="66.1302" rx="18.0355" />
     <text x="15" y="27">
-      I'm in Hyderabad, Telangana where it's 26°C
+      I'm in Hyderabad, Telangana where it's 15°C
     </text>
-    <text x="15" y="50">and ☁️ Scattered Clouds today.</text>
+    <text x="15" y="50">and ☁️ Overcast Clouds today.</text>
   </g>
 
   <!-- typing 3 -->
